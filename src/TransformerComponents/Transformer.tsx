@@ -2,6 +2,7 @@ import { useState } from 'react';
 import JsonInputBox from './JsonInputBox';
 import JsonOutputBox from './JsonOutputBox';
 import { Button, addToast } from '@heroui/react';
+import type { TransformMode } from '../App';
 
 // Icons
 function TransformIcon() {
@@ -42,7 +43,12 @@ function TrashIcon() {
   );
 }
 
-export default function Transformer() {
+
+type Props = Readonly<{
+  selectedTransformMode: TransformMode;
+}>;
+
+export default function Transformer({ selectedTransformMode }: Props) {
   const [jsonInput, setJsonInput] = useState('');
   const [jsonOutput, setJsonOutput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +62,8 @@ export default function Transformer() {
       color: 'warning',
     });
   };
+
+  
 
   const isValidJson = (json: string): boolean => {
     try {
@@ -81,6 +89,9 @@ export default function Transformer() {
 
       const inputData = JSON.parse(input.trim());
 
+      let transformedOutput;
+
+      if (selectedTransformMode === 'bajifair') {
       if (!Array.isArray(inputData)) {
         addToast({
           title: 'Invalid Input',
@@ -91,7 +102,7 @@ export default function Transformer() {
       }
 
       // Include both original objects and their transformed versions in the same array
-      const transformedOutput = inputData.flatMap(obj => [
+       transformedOutput = inputData.flatMap(obj => [
         obj,
         {
           ...obj,
@@ -104,6 +115,19 @@ export default function Transformer() {
               : obj.selectionId,
         },
       ]);
+
+      } else if (selectedTransformMode === 'bdt-site') {
+        // in this case, the input will be just an object, not an array
+        transformedOutput = {
+          apiSiteType: inputData.apiSiteType,
+          eventType: inputData.eventType,
+          eventId: inputData.eventId,
+          marketId: inputData.marketId,
+          selectionId: inputData.selectionId,
+          odds: inputData.odds,
+          betfairEventId: inputData.betfairEventId,
+      };
+      }
 
       const output = JSON.stringify(transformedOutput, null, 2);
       
